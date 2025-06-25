@@ -13,7 +13,7 @@ import { Specialty } from '../../specialties/entities/specialty.entity';
 
 @Entity('position')
 export class Position {
-  @PrimaryColumn()  // si seed asigna IDs fijos
+  @PrimaryColumn()
   id: number;
 
   @Column()

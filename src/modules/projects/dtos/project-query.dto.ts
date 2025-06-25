@@ -1,6 +1,5 @@
-// src/projects/dtos/project-query.dto.ts
-import { IsOptional, IsString, IsNumber, Min, Max, IsArray } from 'class-validator'; 
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, Min, Max, IsArray } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class ProjectQueryDto {
   @Type(() => Number)
@@ -19,10 +18,6 @@ export class ProjectQueryDto {
   @IsOptional()
   @IsString()
   sort?: string; // formato: campo:asc|desc
-
-  @IsOptional()
-  @IsString()
-  category?: string;
 
   @IsOptional()
   @IsString()
@@ -46,11 +41,44 @@ export class ProjectQueryDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  skills?: string[];
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    if (value !== undefined) return [Number(value)];
+    return [];
+  })
+  categories?: number[];
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  specialties?: string[];
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    if (value !== undefined) return [Number(value)];
+    return [];
+  })
+  skills?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    if (value !== undefined) return [Number(value)];
+    return [];
+  })
+  specialties?: number[];
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => Number)
+  @IsNumber({}, { each: true })
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) return value;
+    if (value !== undefined) return [Number(value)];
+    return [];
+  })
+  industries?: number[];
 }

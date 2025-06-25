@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryColumn,    // o PrimaryGeneratedColumn si NO pasas id en seed
+  PrimaryColumn,
   Column,
   ManyToOne,
   OneToMany,
@@ -14,7 +14,7 @@ import { Position } from '../../positions/entities/position.entity';
 
 @Entity('project')
 export class Project {
-  @PrimaryColumn() // si seed asigna ids fijos; si prefieres que la BD genere, usa @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @Column()

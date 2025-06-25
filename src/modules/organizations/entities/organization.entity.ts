@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryColumn, // para permitir IDs fijos desde seed
+  PrimaryColumn,
   Column,
   ManyToOne,
   OneToMany,
@@ -11,7 +11,7 @@ import { Project } from '../../projects/entities/project.entity';
 
 @Entity('organization')
 export class Organization {
-  @PrimaryColumn()    // si usas IDs fijos; o @PrimaryGeneratedColumn() si no usas seed ID explícito
+  @PrimaryColumn()
   id: number;
 
   @Column()

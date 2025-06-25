@@ -10,7 +10,6 @@ export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
   @Get()
-  // Puedes usar @ApiOkResponse({ type: PaginatedResultDto }) si usas Swagger
   async findAll(
     @Query() query: ProjectQueryDto,
   ): Promise<PaginatedResultDto<Project>> {

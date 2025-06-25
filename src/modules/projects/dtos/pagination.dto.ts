@@ -1,6 +1,6 @@
 // src/projects/dtos/pagination.dto.ts
 
-import { ApiProperty } from '@nestjs/swagger'; // si usas Swagger
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber, Min } from 'class-validator';
 

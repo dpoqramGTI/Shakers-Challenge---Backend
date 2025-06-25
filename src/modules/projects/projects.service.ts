@@ -44,43 +44,71 @@ export class ProjectsService {
       .leftJoinAndSelect('project.projectLeader', 'pl')
       .leftJoinAndSelect('project.positions', 'pos')
       .leftJoinAndSelect('pos.skills', 'skill')
-      .leftJoinAndSelect('pos.specialties', 'spec');
+      .leftJoinAndSelect('pos.specialties', 'spec')
+      .distinct(true);
 
-    // Filtros
-    if (query.category) {
-      const catId = Number(query.category);
-      if (!isNaN(catId)) {
-        qb.andWhere('project.categoryId = :catId', { catId });
-      }
+    if (query.categories && query.categories.length) {
+      qb.andWhere('project.categoryId IN (:...catIds)', { catIds: query.categories });
     }
+
     if (query.subcategory) {
       const subId = Number(query.subcategory);
       if (!isNaN(subId)) {
         qb.andWhere('project.subcategoryId = :subId', { subId });
       }
     }
-    if (query.industry) {
-      // Si query.industry es nombre:
-      qb.andWhere('ind.name = :indName', { indName: query.industry });
-      // Si fuese ID: parsear y usar ind.id = :indId
+
+    // Filtrado por industrias (IDs)
+    if (query.industries && query.industries.length) {
+      qb.andWhere('ind.id IN (:...industryIds)', { industryIds: query.industries });
     }
+
+    if (query.industry) {
+      // opción adicional si deseas filtrar por nombre de industria
+      qb.andWhere('ind.name = :indName', { indName: query.industry });
+    }
+
     if (query.minBudget != null) {
       qb.andWhere('project.budgetTotal >= :minB', { minB: query.minBudget });
     }
+
     if (query.maxBudget != null) {
       qb.andWhere('project.budgetTotal <= :maxB', { maxB: query.maxBudget });
     }
+
+    // Filtro por skills usando subquery con INNER JOIN
     if (query.skills && query.skills.length) {
-      qb.andWhere('skill.name IN (:...skills)', { skills: query.skills });
+      qb.andWhere(qb2 => {
+        const projectAlias = qb.alias; // 'project'
+        const sub = qb2.subQuery()
+          .select('1')
+          .from('position', 'pos2')
+          .innerJoin('pos2.skills', 'skill2')
+          .where(`pos2.projectId = ${projectAlias}.id`)
+          .andWhere('skill2.id IN (:...skills)')
+          .getQuery();
+        return `EXISTS ${sub}`;
+      }, { skills: query.skills });
     }
+
+    // Filtro por specialties usando subquery con INNER JOIN
     if (query.specialties && query.specialties.length) {
-      qb.andWhere('spec.name IN (:...specialties)', { specialties: query.specialties });
+      qb.andWhere(qb2 => {
+        const projectAlias = qb.alias;
+        const sub = qb2.subQuery()
+          .select('1')
+          .from('position', 'pos3')
+          .innerJoin('pos3.specialties', 'spec2')
+          .where(`pos3.projectId = ${projectAlias}.id`)
+          .andWhere('spec2.id IN (:...specialties)')
+          .getQuery();
+        return `EXISTS ${sub}`;
+      }, { specialties: query.specialties });
     }
 
     if (query.sort) {
       const [field, dir] = query.sort.split(':');
       const dirUpper = (dir || 'asc').toUpperCase() as 'ASC' | 'DESC';
-      // Asegúrate de que el campo sea válido para evitar inyección
       qb.orderBy(`project.${field}`, dirUpper);
     }
 
@@ -89,10 +117,8 @@ export class ProjectsService {
     const limit = query.limit ?? 20;
     qb.skip(page * limit).take(limit);
 
-    // Ejecutar consulta
     const [items, total] = await qb.getManyAndCount();
 
-    // Calcular metadatos
     const lastPage = Math.max(0, Math.ceil(total / limit) - 1);
 
     const meta: PaginationMetaDto = {
@@ -101,13 +127,6 @@ export class ProjectsService {
       limit,
       lastPage,
     };
-
-    // Opcional: si deseas incluir URLs de prev/next
-    // Necesitarías conocer la URL base y los query params actuales.
-    // Por ejemplo, si quisieras:
-    // if (page > 0) meta.prevPageUrl = buildUrl(page - 1, limit, otros filtros);
-    // if (page < lastPage) meta.nextPageUrl = buildUrl(page + 1, limit, otros filtros);
-    // Pero aquí lo dejamos sin URLs o implementa según tu lógica de construcción de rutas.
 
     return { items, meta };
   }
